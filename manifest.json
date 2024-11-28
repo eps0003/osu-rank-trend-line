@@ -5,7 +5,7 @@
   "description": "TODO",
   "content_scripts": [
     {
-      "matches": ["https://*.osu.ppy.sh/*"],
+      "matches": ["https://osu.ppy.sh/users/*"],
       "js": ["content.js"]
     }
   ]

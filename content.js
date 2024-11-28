@@ -40,7 +40,41 @@ function duplicateElement(element) {
 }
 
 function getPath(width, height) {
+  const rankHistory = getRankHistory();
+
+  const logScaleY = rankHistory.map((rank) => Math.log10(rank));
+
+  const maxLogY = Math.max(...logScaleY);
+  const minLogY = Math.min(...logScaleY);
+
+  function mapToSVGCoordinates(index, value) {
+    // Map x to the index of the dataset (spaced evenly along the width)
+    const x = (index / (rankHistory.length - 1)) * width;
+
+    // Map y to the log-transformed value, scaled to fit the SVG height
+    const y = ((Math.log10(value) - minLogY) / (maxLogY - minLogY)) * height;
+
+    return { x, y };
+  }
+
+  // Create the path data for the trend line
+  let pathData = "";
+
+  rankHistory.forEach((value, index) => {
+    const { x, y } = mapToSVGCoordinates(index, value);
+    pathData += (index === 0 ? "M" : "L") + `${x},${y} `;
+  });
+
+  return pathData.trim();
+
   return `M0,0 L0,${height} L${width},${height} L${width},0 L0,0`;
+}
+
+function getRankHistory() {
+  const dataString = document
+    .getElementsByClassName("js-react--profile-page u-contents")[0]
+    .getAttribute("data-initial-data");
+  return JSON.parse(dataString).user.rank_history.data;
 }
 
 function appendStyle() {
@@ -54,3 +88,5 @@ function appendStyle() {
 }
 
 appendStyle();
+
+console.log(getRankHistory());
