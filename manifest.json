@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "version": "1.0.0",
+  "name": "osu! Rank Trend Line",
+  "description": "TODO",
+  "content_scripts": [
+    {
+      "matches": ["https://*.osu.ppy.sh/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
