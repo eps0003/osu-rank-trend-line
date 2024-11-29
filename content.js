@@ -1,23 +1,26 @@
 console.log("Hello World!");
 
-const observer = new MutationObserver((mutationsList) => {
-  for (const mutation of mutationsList) {
-    if (mutation.type === "childList") {
-      mutation.addedNodes.forEach((node) => {
-        if (
-          node.nodeType === 1 &&
-          node.classList.contains("line-chart__line") &&
-          !node.classList.contains("line-chart__line-trend")
-        ) {
-          resizeObserver.observe(node);
-          duplicateElement(node);
-        }
-      });
+setInterval(() => {
+  const elements = document.querySelectorAll(
+    ".profile-detail__chart .line-chart__line"
+  );
+  for (const element of elements) {
+    if (!element.classList.contains("trend-added")) {
+      element.classList.add("trend-added");
+      const clonedElement = element.cloneNode(true);
+      // clonedElement.setAttribute("stroke-dasharray", "8 4");
+      element.insertAdjacentElement("beforebegin", clonedElement);
+      console.log(clonedElement);
     }
   }
-});
 
-observer.observe(document.body, { childList: true, subtree: true });
+  const hoverElements = document.querySelectorAll(
+    ".profile-detail__chart .line-chart__hover-area"
+  );
+  for (const element of hoverElements) {
+    resizeObserver.observe(element);
+  }
+});
 
 const resizeObserver = new ResizeObserver((entries) => {
   entries.forEach((entry) => {
@@ -26,67 +29,95 @@ const resizeObserver = new ResizeObserver((entries) => {
 
     console.log(`New width: ${width}px, New height: ${height}px`);
 
-    entry.target.previousElementSibling.setAttribute(
-      "d",
-      getPath(width, height)
-    );
+    if (!width || !height) {
+      return;
+    }
+
+    const dataset = normalizeArray(getRankHistory());
+    const { slope } = linearRegressionNormalized(dataset);
+
+    const element = entry.target.previousElementSibling.firstChild.firstChild;
+    element.setAttribute("d", getPath(width, height));
+
+    if (slope > 0) {
+      element.classList.remove("positive-trend");
+      element.classList.add("negative-trend");
+    } else {
+      element.classList.remove("negative-trend");
+      element.classList.add("positive-trend");
+    }
   });
 });
 
-function duplicateElement(element) {
-  const clonedElement = element.cloneNode(true);
-  clonedElement.classList.add("line-chart__line-trend");
-  element.parentNode.prepend(clonedElement);
+function normalizeArray(arr) {
+  const min = Math.min(...arr);
+  const max = Math.max(...arr);
+
+  if (min === max) {
+    return arr.map(() => 0.5);
+  }
+
+  return arr.map((x) => (x - min) / (max - min));
+}
+
+function linearRegressionNormalized(y) {
+  const n = y.length;
+  const x = Array.from({ length: n }, (_, i) => i / (n - 1)); // Normalized x
+  const xMean = 0.5; // Fixed mean of normalized x
+  const yMean = y.reduce((sum, yi) => sum + yi, 0) / n;
+
+  // Covariance of x and y
+  const numerator = y.reduce(
+    (sum, yi, i) => sum + (x[i] - xMean) * (yi - yMean),
+    0
+  );
+
+  // Variance of x (normalized range)
+  const denominator = x.reduce((sum, xi) => sum + (xi - xMean) ** 2, 0);
+
+  const slope = numerator / denominator;
+  const intercept = yMean - slope * xMean;
+
+  return { slope, intercept };
 }
 
 function getPath(width, height) {
-  const rankHistory = getRankHistory();
+  const dataset = normalizeArray(getRankHistory());
+  const { slope, intercept } = linearRegressionNormalized(dataset);
 
-  const logScaleY = rankHistory.map((rank) => Math.log10(rank));
+  const y0 = intercept * height;
+  const y1 = (slope + intercept) * height;
 
-  const maxLogY = Math.max(...logScaleY);
-  const minLogY = Math.min(...logScaleY);
+  console.log(slope, intercept, height);
 
-  function mapToSVGCoordinates(index, value) {
-    // Map x to the index of the dataset (spaced evenly along the width)
-    const x = (index / (rankHistory.length - 1)) * width;
-
-    // Map y to the log-transformed value, scaled to fit the SVG height
-    const y = ((Math.log10(value) - minLogY) / (maxLogY - minLogY)) * height;
-
-    return { x, y };
-  }
-
-  // Create the path data for the trend line
-  let pathData = "";
-
-  rankHistory.forEach((value, index) => {
-    const { x, y } = mapToSVGCoordinates(index, value);
-    pathData += (index === 0 ? "M" : "L") + `${x},${y} `;
-  });
-
-  return pathData.trim();
+  return `M0,${y0} L${width},${y1}`;
 
   return `M0,0 L0,${height} L${width},${height} L${width},0 L0,0`;
 }
 
 function getRankHistory() {
   const dataString = document
-    .getElementsByClassName("js-react--profile-page u-contents")[0]
-    .getAttribute("data-initial-data");
+    .getElementsByClassName("js-react--profile-page u-contents")?.[0]
+    ?.getAttribute("data-initial-data");
+  if (!dataString) {
+    return null;
+  }
   return JSON.parse(dataString).user.rank_history.data;
 }
 
 function appendStyle() {
   const styleElement = document.createElement("style");
   styleElement.textContent = `
-    .line-chart__line-trend {
+    .positive-trend {
+      stroke: hsl(var(--hsl-lime-1)) !important;
+      stroke-width: 1px !important;
+    }
+    .negative-trend {
       stroke: hsl(var(--hsl-red-1)) !important;
+      stroke-width: 1px !important;
     }
   `;
   document.head.appendChild(styleElement);
 }
 
 appendStyle();
-
-console.log(getRankHistory());
