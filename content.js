@@ -20,6 +20,28 @@ setInterval(() => {
   for (const element of hoverElements) {
     resizeObserver.observe(element);
   }
+
+  const container = document.querySelector(".profile-detail__values");
+  if (container && !container.classList.contains("projected")) {
+    const rankEstimate = denormalizeRankEstimation(30);
+    const formattedRankEstimate =
+      rankEstimate !== null
+        ? `#${Math.round(rankEstimate).toLocaleString()}`
+        : "-";
+
+    container.classList.add("projected");
+    container.lastChild.insertAdjacentHTML(
+      "afterend",
+      `<div class="value-display value-display--rank">
+          <div class="value-display__label">Projected Ranking (30d)</div>
+          <div class="value-display__value">
+            <div data-html-title="">
+              ${formattedRankEstimate}
+            </div>
+          </div>
+        </div>`
+    );
+  }
 });
 
 const resizeObserver = new ResizeObserver((entries) => {
@@ -89,18 +111,15 @@ function linearRegressionNormalized(y) {
   return { slope, intercept };
 }
 
-console.log(
-  Math.round(denormalizeRankEstimation(30)).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-  })
-);
-
 /**
  * @param {number} day
- * @returns {number}
+ * @returns {number | null}
  */
 function denormalizeRankEstimation(day) {
   const ranks = getRankHistory();
+  if (!ranks) {
+    return null;
+  }
 
   const min = Math.min(...ranks);
   const max = Math.max(...ranks);
@@ -122,7 +141,7 @@ function denormalizeRankEstimation(day) {
 /**
  * @param {number} width
  * @param {number} height
- * @returns
+ * @returns {string}
  */
 function getPath(width, height) {
   const dataset = normalizeArray(getRankHistory());
@@ -148,7 +167,14 @@ function getRankHistory() {
   if (!dataString) {
     return null;
   }
-  return JSON.parse(dataString).user.rank_history.data;
+
+  /** @type {number[]} */
+  const data = JSON.parse(dataString).user.rank_history.data;
+  if (data.some((rank) => rank === 0)) {
+    return null;
+  }
+
+  return data;
 }
 
 function appendStyle() {
