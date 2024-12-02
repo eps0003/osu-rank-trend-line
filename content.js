@@ -49,6 +49,10 @@ const resizeObserver = new ResizeObserver((entries) => {
   });
 });
 
+/**
+ * @param {number[]} arr
+ * @returns {number[]}
+ */
 function normalizeArray(arr) {
   const min = Math.min(...arr);
   const max = Math.max(...arr);
@@ -60,6 +64,10 @@ function normalizeArray(arr) {
   return arr.map((x) => (x - min) / (max - min));
 }
 
+/**
+ * @param {number[]} y
+ * @returns {{ slope: number, intercept: number }}
+ */
 function linearRegressionNormalized(y) {
   const n = y.length;
   const x = Array.from({ length: n }, (_, i) => i / (n - 1)); // Normalized x
@@ -81,6 +89,41 @@ function linearRegressionNormalized(y) {
   return { slope, intercept };
 }
 
+console.log(
+  Math.round(denormalizeRankEstimation(30)).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+  })
+);
+
+/**
+ * @param {number} day
+ * @returns {number}
+ */
+function denormalizeRankEstimation(day) {
+  const ranks = getRankHistory();
+
+  const min = Math.min(...ranks);
+  const max = Math.max(...ranks);
+  const logMin = Math.log(min);
+  const logMax = Math.log(max);
+  const logRange = logMax - logMin;
+
+  const dataset = normalizeArray(ranks);
+  const { slope, intercept } = linearRegressionNormalized(dataset);
+
+  const x = (ranks.length + day) / ranks.length;
+
+  const yProj = slope * x + intercept;
+  const scaledLog = logMin + yProj * logRange;
+
+  return Math.max(Math.exp(scaledLog), 1);
+}
+
+/**
+ * @param {number} width
+ * @param {number} height
+ * @returns
+ */
 function getPath(width, height) {
   const dataset = normalizeArray(getRankHistory());
   const { slope, intercept } = linearRegressionNormalized(dataset);
@@ -95,6 +138,9 @@ function getPath(width, height) {
   return `M0,0 L0,${height} L${width},${height} L${width},0 L0,0`;
 }
 
+/**
+ * @returns {number[]}
+ */
 function getRankHistory() {
   const dataString = document
     .getElementsByClassName("js-react--profile-page u-contents")?.[0]
