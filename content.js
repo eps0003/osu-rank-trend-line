@@ -1,17 +1,15 @@
 console.log("Hello World!");
 
-setInterval(() => {
-  const elements = document.querySelectorAll(
+const mutationObserver = new MutationObserver(() => {
+  const element = document.querySelector(
     ".profile-detail__chart .line-chart__line"
   );
-  for (const element of elements) {
-    if (!element.classList.contains("trend-added")) {
-      element.classList.add("trend-added");
-      const clonedElement = element.cloneNode(true);
-      // clonedElement.setAttribute("stroke-dasharray", "8 4");
-      element.insertAdjacentElement("beforebegin", clonedElement);
-      console.log(clonedElement);
-    }
+  if (element && !element.classList.contains("trend-added")) {
+    element.classList.add("trend-added");
+    const clonedElement = element.cloneNode(true);
+    clonedElement.setAttribute("stroke-dasharray", "8 4");
+    element.insertAdjacentElement("beforebegin", clonedElement);
+    console.log(clonedElement);
   }
 
   const hoverElements = document.querySelectorAll(
@@ -23,7 +21,7 @@ setInterval(() => {
 
   const container = document.querySelector(".profile-detail__values");
   if (container && !container.classList.contains("projected")) {
-    const rankEstimate = denormalizeRankEstimation(30);
+    const rankEstimate = denormalizeRankEstimation(60);
     const formattedRankEstimate =
       rankEstimate !== null
         ? `#${Math.round(rankEstimate).toLocaleString()}`
@@ -33,7 +31,7 @@ setInterval(() => {
     container.lastChild.insertAdjacentHTML(
       "afterend",
       `<div class="value-display value-display--rank">
-          <div class="value-display__label">Projected Ranking (30d)</div>
+          <div class="value-display__label">Projected Ranking (60d)</div>
           <div class="value-display__value">
             <div data-html-title="">
               ${formattedRankEstimate}
@@ -42,6 +40,11 @@ setInterval(() => {
         </div>`
     );
   }
+});
+
+mutationObserver.observe(document.documentElement, {
+  childList: true,
+  subtree: true,
 });
 
 const resizeObserver = new ResizeObserver((entries) => {
