@@ -1,4 +1,4 @@
-console.log("Hello World!");
+console.log("osu! Rank Trend Line is active");
 
 const mutationObserver = new MutationObserver(() => {
   const element = document.querySelector(
@@ -9,7 +9,6 @@ const mutationObserver = new MutationObserver(() => {
     const clonedElement = element.cloneNode(true);
     clonedElement.setAttribute("stroke-dasharray", "8 4");
     element.insertAdjacentElement("beforebegin", clonedElement);
-    console.log(clonedElement);
   }
 
   const hoverElements = document.querySelectorAll(
@@ -51,8 +50,6 @@ const resizeObserver = new ResizeObserver((entries) => {
   entries.forEach((entry) => {
     const width = entry.contentRect.width;
     const height = entry.contentRect.height;
-
-    console.log(`New width: ${width}px, New height: ${height}px`);
 
     if (!width || !height) {
       return;
@@ -152,8 +149,6 @@ function getPath(width, height) {
 
   const y0 = intercept * height;
   const y1 = (slope + intercept) * height;
-
-  console.log(slope, intercept, height);
 
   return `M0,${y0} L${width},${y1}`;
 
