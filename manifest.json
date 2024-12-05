@@ -1,8 +1,13 @@
 {
+  "$schema": "https://json.schemastore.org/chrome-manifest",
   "manifest_version": 3,
   "version": "1.0.0",
   "name": "osu! Rank Trend Line",
-  "description": "Shows a trend line on profile ranking graphs on the osu! website",
+  "description": "Shows a rank trend line and projected rank on osu! user profiles.",
+  "icons": {
+    "128": "extension-icon.png",
+    "256": "extension-icon.png"
+  },
   "content_scripts": [
     {
       "matches": ["https://osu.ppy.sh/*"],
