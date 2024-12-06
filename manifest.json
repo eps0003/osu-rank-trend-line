@@ -13,5 +13,10 @@
       "matches": ["https://osu.ppy.sh/*"],
       "js": ["content.js"]
     }
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{b620affb-29e0-44c7-a491-290e3118fead}"
+    }
+  }
 }
