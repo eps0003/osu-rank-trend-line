@@ -160,7 +160,7 @@ function getPath(width, height) {
  */
 function getRankHistory() {
   const dataString = document
-    .getElementsByClassName("js-react--profile-page u-contents")?.[0]
+    .querySelector(".osu-layout__section .js-react.u-contents")
     ?.getAttribute("data-initial-data");
   if (!dataString) {
     return null;
