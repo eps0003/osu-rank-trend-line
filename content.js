@@ -18,7 +18,7 @@ const mutationObserver = new MutationObserver(() => {
     resizeObserver.observe(element);
   }
 
-  const container = document.querySelector(".profile-detail__values");
+  const container = document.querySelector(".profile-detail-stats__values");
   if (container && !container.classList.contains("projected")) {
     const rankEstimate = denormalizeRankEstimation(60);
     const formattedRankEstimate =
