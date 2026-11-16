@@ -2,7 +2,7 @@ console.log("osu! Rank Trend Line is active");
 
 const mutationObserver = new MutationObserver(() => {
   const element = document.querySelector(
-    ".profile-detail__chart .line-chart__line"
+    ".profile-detail-stats__chart .line-chart__line"
   );
   if (element && !element.classList.contains("trend-added")) {
     element.classList.add("trend-added");
@@ -12,13 +12,13 @@ const mutationObserver = new MutationObserver(() => {
   }
 
   const hoverElements = document.querySelectorAll(
-    ".profile-detail__chart .line-chart__hover-area"
+    ".profile-detail-stats__chart .line-chart__hover-area"
   );
   for (const element of hoverElements) {
     resizeObserver.observe(element);
   }
 
-  const container = document.querySelector(".profile-detail__values");
+  const container = document.querySelector(".profile-detail-stats__values");
   if (container && !container.classList.contains("projected")) {
     const rankEstimate = denormalizeRankEstimation(60);
     const formattedRankEstimate =
